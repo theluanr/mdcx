@@ -10,11 +10,11 @@ requires-python = ">=3.13.4" # we need os.path.ALLOW_MISSING
 dependencies = [
     "aiofiles==24.1.0",
     "aiolimiter==1.2.1",
-    "av>=15.0.0",
+    "av>=15.1.0",
     "beautifulsoup4==4.13.4",
     "curl-cffi==0.11.4",
     "httpx[socks]>=0.28.1",
-    "lxml==5.4.0",
+    "lxml==6.0.1",
     "openai==1.91.0",
     "oshash==0.1.1",
     "parsel>=1.10.0",
@@ -36,7 +36,7 @@ bump = "scripts.bump:app"
 changelog = "scripts.changelog:app"
 
 [project.optional-dependencies]
-web = ["fastapi>=0.116.1", "uvicorn[standard]>=0.35.0"]
+web = ["fastapi>=0.135.2", "uvicorn[standard]>=0.35.0"]
 
 [dependency-groups]
 dev = [
