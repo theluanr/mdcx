@@ -99,6 +99,7 @@ async def write_nfo(file_info: FileInfo, data: CrawlersResult, nfo_file: Path, o
     release = data.release
     runtime = data.runtime
     tags = data.tags
+    genres = data.genres
     trailer = data.trailer
     year = data.year
 
@@ -278,14 +279,14 @@ async def write_nfo(file_info: FileInfo, data: CrawlersResult, nfo_file: Path, o
                 print("  <label>" + publisher + "</label>", file=code)
 
         # 输出 tag
-        if NfoInclude.TAG in nfo_include_new:
+        if NfoInclude.TAG in nfo_include_new:          
             for t in tags:
                 if t:
                     print("  <tag>" + t + "</tag>", file=code)
 
         # 输出 genre
         if NfoInclude.GENRE in nfo_include_new:
-            for t in tags:
+            for t in genres:
                 if t:
                     print("  <genre>" + t + "</genre>", file=code)
 
@@ -379,6 +380,8 @@ async def get_nfo_data(file_path: Path, movie_number: str) -> tuple[CrawlersResu
                 json_data.outline_from = temp_from[0].replace("<br>  <br>由 ", "").replace(" 提供翻译", "")
             outline = outline.replace(originalplot, "").replace("<br>  <br>", "")
     tag = ",".join(xml_nfo.xpath("//tag/text()"))
+    print(1)
+    genre = ",".join(xml_nfo.xpath("//genre/text()"))
     release = "".join(xml_nfo.xpath("//release/text()"))
     if not release:
         release = "".join(xml_nfo.xpath("//releasedate/text()"))
@@ -495,6 +498,8 @@ async def get_nfo_data(file_path: Path, movie_number: str) -> tuple[CrawlersResu
     json_data.tag = tag
     if ReadMode.READ_UPDATE_NFO in manager.config.read_mode:
         json_data.tag = tag_only
+    print(2)
+    json_data.genre = genre
     json_data.release = release
     json_data.year = year
     json_data.runtime = runtime

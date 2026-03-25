@@ -92,6 +92,7 @@ class WholeField(Enum):
     RUNTIME = "runtime"
     SCORE = "score"
     TAG = "tag"
+    GENRE = "genre"
     DIRECTOR = "director"
     SERIES = "series"
     STUDIO = "studio"

@@ -394,6 +394,10 @@ class Config(BaseModel):
                 site_prority=[Website.THEPORNDB, Website.OFFICIAL, Website.DMM, Website.JAVDB],
                 language=Language.ZH_CN,
             ),
+            CrawlerResultFields.GENRES: FieldConfig(
+                site_prority=[Website.THEPORNDB, Website.OFFICIAL, Website.DMM, Website.JAVDB],
+                language=Language.ZH_CN,
+            ),            
             CrawlerResultFields.DIRECTORS: FieldConfig(
                 site_prority=[Website.THEPORNDB, Website.OFFICIAL, Website.DMM, Website.JAVDB],
                 language=Language.JP,

@@ -20,6 +20,7 @@ class CrawlerResultFields(StrEnum):
     SERIES = "series"
     STUDIO = "studio"
     TAGS = "tags"
+    GENRES = "genres"
     THUMB = "thumb"
     TITLE = "title"
     TRAILER = "trailer"

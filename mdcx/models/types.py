@@ -183,6 +183,7 @@ class BaseCrawlerResult:
     series: str  # 系列
     studio: str  # 制作商
     tags: list[str]
+    genres: list[str]
     # tag: str  # 标签，逗号分隔
     thumb: str  # 缩略图URL # todo 需修改为 list[str] 支持多个候选地址
     title: str  # 标题
@@ -215,6 +216,20 @@ class BaseCrawlerResult:
         向后兼容. 设置标签字段, 将逗号分隔的字符串转换为列表
         """
         self.tags = value.split(",") if value else []
+
+    @property
+    def genre(self) -> str:
+        """
+        向后兼容. 返回风格字段, 如果 genres 不为空则使用 genres, 否则使用 genre
+        """
+        return ",".join(self.genres)
+    
+    @genre.setter
+    def genre(self, value: str):
+        """
+        向后兼容. 设置风格字段, 将逗号分隔的字符串转换为列表
+        """
+        self.genres = value.split(",") if value else []
 
     @property
     def actor(self) -> str:
@@ -282,6 +297,7 @@ class BaseCrawlerResult:
             series="",
             studio="",
             tags=[],
+            genres=[],
             thumb="",
             title="",
             trailer="",

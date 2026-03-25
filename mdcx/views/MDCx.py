@@ -10849,7 +10849,7 @@ class Ui_MDCx(object):
         self.lineEdit_nfo_tagline.setText(_translate("MDCx", "发行日期：release"))
         self.checkBox_nfo_sorttitle.setText(_translate("MDCx", "类标题（sorttitle）"))
         self.checkBox_nfo_originaltitle.setText(_translate("MDCx", "原标题（originaltitle）"))
-        self.checkBox_nfo_genre.setText(_translate("MDCx", "风格（使用标签字段）"))
+        self.checkBox_nfo_genre.setText(_translate("MDCx", "风格（genre）"))
         self.checkBox_nfo_actor_set.setText(_translate("MDCx", "合集（使用演员字段）"))
         self.checkBox_nfo_set.setText(_translate("MDCx", "合集（使用系列字段）"))
         self.checkBox_nfo_poster.setText(_translate("MDCx", "封面（poster）"))

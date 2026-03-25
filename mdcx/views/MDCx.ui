@@ -16768,7 +16768,7 @@
                                   </size>
                                 </property>
                                 <property name="text">
-                                  <string>风格（使用标签字段）</string>
+                                  <string>风格（genre）</string>
                                 </property>
                               </widget>
                             </item>

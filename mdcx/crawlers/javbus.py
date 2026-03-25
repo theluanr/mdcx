@@ -129,7 +129,7 @@ def getExtraFanart(html, url):  # 获取封面链接
     return new_list
 
 
-def getTag(html):  # 获取标签
+def getgenre(html):  # 获取系列
     result = html.xpath('//span[@class="genre"]/label/a[contains(@href, "/genre/")]/text()')
     result = str(result).strip(" ['']").replace("'", "").replace(", ", ",") if result else ""
     return result
@@ -263,7 +263,7 @@ async def main(
         poster_url = get_poster_url(cover_url)
         release = getRelease(html_info)
         year = getYear(release)
-        tag = getTag(html_info)
+        genres = getgenre(html_info).split(",")
         mosaic = getMosaic(html_info)
         if mosaic == "无码":
             image_cut = "center"
@@ -294,7 +294,7 @@ async def main(
                 "actor": actor,
                 "outline": "",
                 "originalplot": "",
-                "tag": tag,
+                "genres": genres,
                 "release": release,
                 "year": year,
                 "runtime": runtime,
@@ -333,7 +333,7 @@ async def main(
     return dic
 
 
-if __name__ == "__main__":
+    #if __name__ == "__main__":
     # yapf: disable
     # print(main('LAFBD-034'))    # cwp,cwpbd 数字为2位时不带0
-    print(main('PMAXVR-008'))  # print(main('cwpbd-034'))    # cwp,cwpbd 数字为2位时不带0  # print(main('FC2-1262472'))    # 无结果  # print(main('STARS-199'))    # 禁止  # print(main('EDVR-043'))    # 无结果  # print(main('SSIS-243'))  # print(main('ABW-015'))  # print(main('DASD-972'))  # print(main('ss-036'))    # 无结果  # print(main('KMHRS-050'))  # print(main('KV-115'))    # 无结果  # print(main('070621_001'))  # print(main('heyzo-1031'))  # print(main('heyzo-0811'))  # print(main('heyzo-1673'))  # print(main('dv-1175'))    # 无结果，通过搜索有结果  # print(main('dv1175'))  # print(main('ssni-644'))  # print(main('010115-001'))  # print(main('ssni644'))  # print(main('BigTitsatWork-17-09-26'))  # print(main('BrazzersExxtra.21.02.01'))  # print(main('KA-001'))   # 无结果  # print(main('012715-793'))  # print(main('ssni-644', "https://www.javbus.com/SSNI-644"))  # print(main('ssni-802', ""))  # print(main('DirtyMasseur.20.07.26', "https://www.javbus.hair/DirtyMasseur-21-01-31"))
+    # print(main('PMAXVR-008'))  # print(main('cwpbd-034'))    # cwp,cwpbd 数字为2位时不带0  # print(main('FC2-1262472'))    # 无结果  # print(main('STARS-199'))    # 禁止  # print(main('EDVR-043'))    # 无结果  # print(main('SSIS-243'))  # print(main('ABW-015'))  # print(main('DASD-972'))  # print(main('ss-036'))    # 无结果  # print(main('KMHRS-050'))  # print(main('KV-115'))    # 无结果  # print(main('070621_001'))  # print(main('heyzo-1031'))  # print(main('heyzo-0811'))  # print(main('heyzo-1673'))  # print(main('dv-1175'))    # 无结果，通过搜索有结果  # print(main('dv1175'))  # print(main('ssni-644'))  # print(main('010115-001'))  # print(main('ssni644'))  # print(main('BigTitsatWork-17-09-26'))  # print(main('BrazzersExxtra.21.02.01'))  # print(main('KA-001'))   # 无结果  # print(main('012715-793'))  # print(main('ssni-644', "https://www.javbus.com/SSNI-644"))  # print(main('ssni-802', ""))  # print(main('DirtyMasseur.20.07.26', "https://www.javbus.hair/DirtyMasseur-21-01-31"))
