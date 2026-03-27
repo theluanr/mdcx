@@ -243,7 +243,7 @@ def Init_Singal(self: "MyMAinWindow"):
     )
     self.Ui.label_get_cookie_url.mousePressEvent = lambda ev: n(webbrowser.open("https://tieba.baidu.com/p/5492736764"))
     self.Ui.label_download_actor_db.mousePressEvent = lambda ev: n(
-        webbrowser.open("https://github.com/sqzw-x/mdcx/releases/tag/actor_info_database")
+        webbrowser.open("https://github.com/theluanr/mdcx/releases")
     )
     # endregion
 

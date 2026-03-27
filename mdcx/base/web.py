@@ -236,7 +236,7 @@ def ping_host(host_address: str) -> str:
 
 def check_version() -> int | None:
     if manager.config.update_check:
-        url = "https://api.github.com/repos/sqzw-x/mdcx/releases/latest"
+        url = "https://api.github.com/repos/theluanr/mdcx/releases/latest"
         res_json, error = get_json_sync(url)
         if res_json is not None:
             try:

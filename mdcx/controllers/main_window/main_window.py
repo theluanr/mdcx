@@ -173,7 +173,6 @@ class MyMAinWindow(QMainWindow):
             "无需代理：avsex、hdouban、iqqtv、airav-wiki、love6、lulubar、fc2、fc2club、fc2hub\n\n"
             "▶️ 点击右上角 【开始检测】按钮以测试网络连通性。"
         )  # 检查网络界面显示提示信息
-        signal_qt.add_log("🍯 你可以点击左下角的图标来 显示 / 隐藏 请求信息面板！")
         self.show_version()  # 日志页面显示版本信息
         self.creat_right_menu()  # 加载右键菜单
         self.pushButton_main_clicked()  # 切换到主界面
@@ -555,11 +554,11 @@ class MyMAinWindow(QMainWindow):
                 signal_qt.show_scrape_info()
                 self.Ui.label_show_version.setCursor(Qt.OpenHandCursor)  # 设置鼠标形状为十字形
                 version_info = f'基于 MDC-GUI 修改 · 当前版本: {self.localversion} （ <font color="red" >最新版本是: {latest_version}，请及时更新！🚀 </font>）'
-                download_link = ' ⬇️ <a href="https://github.com/sqzw-x/mdcx/releases">下载新版本</a>'
+                download_link = ' ⬇️ <a href="https://github.com/theluanr/mdcx/releases">下载新版本</a>'
             else:
                 version_info = f'基于 MDC-GUI 修改 · 当前版本: {self.localversion} （ <font color="green">你使用的是最新版本！🎉 </font>）'
 
-        feedback = ' 💌 问题反馈: <a href="https://github.com/sqzw-x/mdcx/issues/new/choose">GitHub Issues</a>'
+        feedback = ' 💌 问题反馈: <a href="https://github.com/theluanr/mdcx/issues/new/choose">GitHub Issues</a>'
 
         # 显示版本信息和反馈入口
         signal_qt.show_log_text(version_info)
@@ -582,7 +581,7 @@ class MyMAinWindow(QMainWindow):
     # region 各种点击跳转浏览器
     def label_version_clicked(self, ev):
         try:
-            webbrowser.open("https://github.com/sqzw-x/mdcx/releases")
+            webbrowser.open("https://github.com/theluanr/mdcx/releases")
         except Exception:
             signal_qt.show_traceback_log(traceback.format_exc())
 
@@ -680,7 +679,7 @@ class MyMAinWindow(QMainWindow):
             Flags.rest_time_convert = 0
             self.Ui.pushButton_start_cap.setText(" ■ 停止中 ")
             self.Ui.pushButton_start_cap2.setText(" ■ 停止中 ")
-            signal_qt.show_scrape_info("⛔️ 刮削停止中...")
+            signal_qt.show_scrape_info(" ⛔️ 刮削停止中...")
             executor.cancel_async()  # 取消异步任务
             t = threading.Thread(target=self._kill_threads)  # 关闭线程池
             t.start()
@@ -691,11 +690,11 @@ class MyMAinWindow(QMainWindow):
         try:
             Flags.rest_time_convert = Flags.rest_time_convert_
             if Flags.stop_other:
-                signal_qt.show_scrape_info("⛔️ 已手动停止！")
+                signal_qt.show_scrape_info(" ⛔️ 已手动停止！")
                 signal_qt.show_log_text(
-                    "⛔️ 已手动停止！\n================================================================================"
+                    " ⛔️ 已手动停止！\n================================================================================"
                 )
-                self.set_label_file_path.emit("⛔️ 已手动停止！")
+                self.set_label_file_path.emit(" ⛔️ 已手动停止！")
                 return
             signal_qt.exec_set_processbar.emit(0)
             end_time = time.time()
@@ -704,9 +703,9 @@ class MyMAinWindow(QMainWindow):
                 average_time = str(round((end_time - Flags.start_time) / Flags.scrape_done, 2))
             else:
                 average_time = used_time
-            signal_qt.show_scrape_info("⛔️ 刮削已手动停止！")
+            signal_qt.show_scrape_info(" ⛔️ 刮削已手动停止！")
             self.set_label_file_path.emit(
-                f"⛔️ 刮削已手动停止！\n   已刮削 {Flags.scrape_done} 个视频, 还剩余 {Flags.total_count - Flags.scrape_done} 个! 刮削用时 {used_time} 秒"
+                f" ⛔️ 刮削已手动停止！\n   已刮削 {Flags.scrape_done} 个视频, 还剩余 {Flags.total_count - Flags.scrape_done} 个! 刮削用时 {used_time} 秒"
             )
             signal_qt.show_log_text(
                 f"\n ⛔️ 刮削已手动停止！\n 😊 已刮削 {Flags.scrape_done} 个视频, 还剩余 {Flags.total_count - Flags.scrape_done} 个! 刮削用时 {used_time} 秒, 停止用时 {self.stop_used_time} 秒"
@@ -738,11 +737,11 @@ class MyMAinWindow(QMainWindow):
         Flags.total_kills = len(self.threads_list)
         Flags.now_kill = 0
         start_time = time.time()
-        self.set_label_file_path.emit(f"⛔️ 正在停止刮削...\n   正在停止已在运行的任务线程（1/{Flags.total_kills}）...")
+        self.set_label_file_path.emit(f" ⛔️ 正在停止刮削...\n   正在停止已在运行的任务线程（1/{Flags.total_kills}）...")
         signal_qt.show_log_text(
             f"\n ⛔️ {get_current_time()} 已停止添加新的刮削任务，正在停止已在运行的任务线程（{Flags.total_kills}）..."
         )
-        signal_qt.show_traceback_log(f"⛔️ 正在停止正在运行的任务线程 ({Flags.total_kills}) ...")
+        signal_qt.show_traceback_log(f" ⛔️ 正在停止正在运行的任务线程 ({Flags.total_kills}) ...")
         i = 0
         for each in self.threads_list:
             i += 1
@@ -2256,7 +2255,7 @@ class MyMAinWindow(QMainWindow):
         tips = "✅ 连接正常！"
         input_cookie = self.Ui.plainTextEdit_cookie_javbus.toPlainText()
         headers = {"Accept-Language": "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7,ja;q=0.6", "cookie": input_cookie}
-        javbus_url = manager.config.get_site_url(Website.JAVBUS, "https://javbus.com") + "/FSDSS-660"
+        javbus_url = manager.config.get_site_url(Website.JAVBUS, "https://javbus.com") #+ "/FSDSS-660"
 
         try:
             response, error = get_text_sync(javbus_url, headers=headers)

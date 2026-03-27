@@ -75,7 +75,7 @@ def load_config(self: "MyMAinWindow"):
         signal_qt.show_log_text(
             f"⚠️ 读取配置文件出错:\n\t{'\n\t'.join(errors)}\n\n"
             "为避免破坏配置文件, 已自动切换为 _failed.json\n"
-            '这是非预期错误, 请提交 <a href="https://github.com/sqzw-x/mdcx/issues/new?template=bug_report_cn.yaml">GitHub Issue</a>\n'
+            '这是非预期错误, 请提交 <a href="https://github.com/theluanr/mdcx/issues">GitHub Issue</a>\n'
         )
         manager.path = manager.data_folder / "_failed.json"
         return
