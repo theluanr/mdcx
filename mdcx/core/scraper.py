@@ -82,8 +82,8 @@ class Scraper:
 
     # 运行刮削
     async def _run(self, file_mode: FileMode, movie_list: list[Path] | None) -> None:
-        '''初始化阶段'''
-        # 重置刮削状态
+        '''初始化阶段：刮削进程'''
+        # 重置刮削进程状态
         Flags.reset()
         # 刮削模式（工具单文件或主界面/日志点开始正常刮削）
         Flags.file_mode = file_mode  
@@ -92,11 +92,14 @@ class Scraper:
         # 日志页面显示开始时间
         Flags.start_time = time.time()
 
+        '''初始化阶段：线程设置'''
         # 初始化线程设置
         # 线程数量
         thread_number = manager.config.thread_number
         # 线程延时
         thread_time = manager.config.thread_time
+
+        '''初始化阶段：目录设置'''
         # 获取设置的媒体目录、失败目录、成功目录
         path_settings = get_movie_path_setting()
         movie_path = path_settings.movie_path
@@ -110,6 +113,7 @@ class Scraper:
         signal.label_result.emit(f" 刮削中：{0} 成功：{Flags.succ_count} 失败：{Flags.fail_count}")
         signal.logs_failed_settext.emit("\n\n")
 
+        '''初始化阶段：文件列表'''
         # 初始化影片列表
         if movie_list is None:
             movie_list = []
@@ -119,11 +123,11 @@ class Scraper:
         #   Single：单文件刮削
         #   Agian：重新刮削
         if file_mode == FileMode.Default:
-            pass
+            signal.show_log_text(" 🍯 NOTE: 默认刮削模式")
         elif file_mode == FileMode.Single:
-            signal.show_log_text("🍯  NOTE: 当前是单文件刮削模式")
+            signal.show_log_text(" 🍯 NOTE: 单文件刮削模式")
         elif file_mode == FileMode.Again:
-            signal.show_log_text(f"🍯  NOTE: 开始重新刮削，刮削文件数量（{len(movie_list)})")
+            signal.show_log_text(f" 🍯 NOTE: 重新刮削模式，刮削文件数量（{len(movie_list)})")
             n = 0
 
             for each_f, each_i in Flags.new_again_dic.items():
@@ -134,74 +138,87 @@ class Scraper:
                 else:
                     signal.show_log_text(f"{n} 🖥 文件路径: {each_f}\n 🌐 url: {each_i[1]}")
 
+        signal.show_log_text("\n ⏰ 开始时间: " + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+
+
         # 获取待刮削文件列表的相关信息
+        # 应该是默认模式和单文件模式，当前只有刮削路径，没有具体的文件列表
         if not movie_list:
-            # 刮削目录：在以下目录为待刮削目录中的视频创建软链接
+            # 为待刮削目录中的视频创建软链接
             if manager.config.scrape_softlink_path:
                 # 创建软链接
-                await newtdisk_creat_symlink(
-                    Switch.COPY_NETDISK_NFO in manager.config.switch_on, movie_path, softlink_path
-                )
+                await newtdisk_creat_symlink(Switch.COPY_NETDISK_NFO in manager.config.switch_on, movie_path, softlink_path)
                 # 刮削路径指向软链接路径
                 movie_path = softlink_path
+            
             '''
             问题就在这里了：刮削目标确定太早
             如何：访问成功->移动/重命名->创建软链接->刮削
             还是：访问成功->移动/重命名->下载资源->创建软链接->复制资源
             ''' 
-              
-            signal.show_log_text("\n ⏰ 开始时间: " + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+            # 遍历待刮削目录，获取文件列表  
             movie_list = await get_movie_list(file_mode, movie_path, ignore_dirs)
-        else:
-            signal.show_log_text("\n ⏰ 开始时间: " + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
-
+            
         Flags.remain_list = movie_list
         Flags.can_save_remain = True
         Flags.total_count = len(movie_list)
 
+        '''执行阶段'''
+        # 任务列表
         task_list = []
+
+        # 将文件列表加入任务列表
         for i, each in enumerate(movie_list, 1):
             task_list.append((each, i, Flags.total_count))
 
+        # 如果有任务，调整并线程数量，启动每个刮削线程
         if Flags.total_count:
             Flags.count_claw += 1
-            if manager.config.main_mode == MainMode.Read:
-                signal.show_log_text(f" 🕷 当前为读取模式，并发数（{thread_number}），线程延时（0）秒...")
-            else:
+            Flags.next_start_time = time.time()
+
+            # 简单地说，读取模式时不使用线程延迟
+            if manager.config.main_mode != MainMode.Read:
+                # 削减多余的线程数量
                 if Flags.total_count < thread_number:
                     thread_number = Flags.total_count
-                signal.show_log_text(f" 🕷 开启异步并发，并发数（{thread_number}），线程延时（{thread_time}）秒...")
-            if Switch.REST_SCRAPE in manager.config.switch_on and manager.config.main_mode != 4:
-                signal.show_log_text(
-                    f'<font color="brown"> 🍯 间歇刮削 已启用，连续刮削 {manager.config.rest_count} 个文件后，将自动休息 {Flags.rest_time_convert} 秒...</font>'
-                )
 
-            Flags.next_start_time = time.time()
+                signal.show_log_text(f" 🕷 开启异步并发，并发数（{thread_number}），线程延时（{thread_time}）秒...")
+
+                # 非阅读模式，提示刮削间隔设置
+                if Switch.REST_SCRAPE in manager.config.switch_on:
+                    signal.show_log_text(f'<font color="brown"> 🍯 间歇刮削 已启用，连续刮削 {manager.config.rest_count} 个文件后，将自动休息 {Flags.rest_time_convert} 秒。</font>')
+            else:                    
+                signal.show_log_text(f" 🕷 当前为读取模式，并发数（{thread_number}），线程延时（0）秒...")
 
             # 创建信号量来限制并发数量
             semaphore = asyncio.Semaphore(thread_number)
-
+            # 开始刮削每个文件
             async def limited_scrape_exec_thread(task):
                 async with semaphore:
                     await self.process_one_file(task)
 
             # 异步并发
             await asyncio.gather(*[limited_scrape_exec_thread(task) for task in task_list])
-            signal.label_result.emit(f" 刮削中：0 成功：{Flags.succ_count} 失败：{Flags.fail_count}")
-            await save_success_list()  # 保存成功列表
+            signal.label_result.emit(f" 刮削中：成功 {Flags.succ_count}， 失败 {Flags.fail_count}")
+            # 保存成功列表
+            await save_success_list()
+
             if signal.stop:
                 return
 
-        signal.show_log_text("=" * 50)
+        '''结束阶段：统计'''
+        # 清理空文件夹
         await _clean_empty_fodlers(movie_path, file_mode)
+
+        # 计算结束时间、执行时间、平均时间
         end_time = time.time()
         used_time = str(round((end_time - Flags.start_time), 2))
         average_time = str(round((end_time - Flags.start_time) / Flags.total_count, 2)) if Flags.total_count else used_time
+
         signal.exec_set_processbar.emit(0)
-        signal.show_log_text("-" * 100)
-        signal.set_label_file_path.emit(f"🎉 恭喜！全部刮削完成！共 {Flags.total_count} 个文件！用时 {used_time} 秒")
+        signal.set_label_file_path.emit(f"🎉 全部完成！共 {Flags.total_count} 个文件！用时 {used_time} 秒")
         signal.show_traceback_log(f"🎉 全部完成！ 共计 {Flags.total_count} , 成功 {Flags.succ_count} , 失败 {Flags.fail_count} ")
-        signal.show_log_text(f" 🎉 全部完成！ 共计 {Flags.total_count} , 成功 {Flags.succ_count} , 失败 {Flags.fail_count} ")
+        signal.show_scrape_info(f"🎉 刮削完成 {Flags.succ_count}/{Flags.total_count}")
         
         # 打印失败结果
         if Flags.failed_list:
@@ -211,36 +228,44 @@ class Scraper:
                 fail_path, fail_reson = Flags.failed_list[i]
                 signal.show_log_text(f" 🔴 {i + 1} {fail_path}\n    {fail_reson}")
             
-
+        signal.show_log_text("-" * 100)
         signal.show_log_text(" ⏰ 开始时间: " + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(Flags.start_time)))
         signal.show_log_text(" 🏁 结束时间: " + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(end_time)))
-        signal.show_log_text(" ⏱ 耗时共计: {used_time}S")
-        signal.show_log_text(" 📺 影片数量: {Flags.total_count}")
-        signal.show_log_text(" 🍕 平均耗时: {average_time}S")
+        signal.show_log_text(f" ⏱ 耗时共计: {used_time}s")
+        signal.show_log_text(f" 📺 影片数量: {Flags.total_count}")
+        signal.show_log_text(f" 🍕 平均耗时: {average_time}s")
+        signal.show_log_text(f" 🎉 全部完成！ 共计 {Flags.total_count} , 成功 {Flags.succ_count} , 失败 {Flags.fail_count} ")
         signal.show_log_text("-" * 100)
-        signal.show_scrape_info(f"🎉 刮削完成 {Flags.total_count}/{Flags.total_count}")
 
-        # auto run after scrape
+        '''结束阶段：统计'''
+        # 更新 emby/Kodi 演员照片
         if EmbyAction.ACTOR_PHOTO_AUTO in manager.config.emby_on:
             await update_emby_actor_photo()
         if manager.config.actor_photo_kodi_auto:
             await creat_kodi_actors(True)
 
         signal.reset_buttons_status.emit()
+
         if len(Flags.again_dic):
             Flags.new_again_dic = Flags.again_dic.copy()
             new_movie_list = list(Flags.new_again_dic.keys())
             Flags.again_dic.clear()
             start_new_scrape(FileMode.Again, new_movie_list)
+
         if Switch.AUTO_EXIT in manager.config.switch_on:
             signal.show_log_text("\n\n 🍔 已启用「刮削后自动退出软件」！")
             count = 5
+
             for i in range(count):
                 signal.show_log_text(f" {count - i} 秒后将自动退出！")
                 await asyncio.sleep(1)
+
             await self.crawler_provider.close()
             signal.exec_exit_app.emit()
 
+
+
+    '''文件刮削流程'''
     async def process_one_file(self, task: tuple[Path, int, int]) -> None:
         # 获取顺序
         file_path, count, count_all = task
@@ -300,12 +325,8 @@ class Scraper:
         progress_value = Flags.scrape_started / count_all * 100
         progress_percentage = f"{progress_value:.2f}%"
         signal.exec_set_processbar.emit(int(progress_value))
-        signal.set_label_file_path.emit(
-            f"正在刮削： {Flags.scrape_started}/{count_all} {progress_percentage} \n {file_show_path}"
-        )
-        signal.label_result.emit(
-            f" 刮削中：{Flags.scrape_started - Flags.succ_count - Flags.fail_count} 成功：{Flags.succ_count} 失败：{Flags.fail_count}"
-        )
+        signal.set_label_file_path.emit(f"正在刮削： {Flags.scrape_started}/{count_all} {progress_percentage} \n {file_show_path}")
+        signal.label_result.emit(f" 刮削中：{Flags.scrape_started - Flags.succ_count - Flags.fail_count} 成功：{Flags.succ_count} 失败：{Flags.fail_count}")
         LogBuffer.log().write("\n" + "-" * 50)
         LogBuffer.log().write("\n 🙈 [file] " + str(file_info.file_path))
         LogBuffer.log().write("\n 🚘 [number] " + number)
@@ -314,17 +335,20 @@ class Scraper:
         website_single = manager.config.website_single
         if manager.config.scrape_like == "single" and file_mode != FileMode.Single and manager.config.main_mode != 4:
             LogBuffer.log().write(
-                f"\n 😸 [Note] You specified 「 {website_single} 」, some videos may not have results! "
+                f"\n 😸 指定网站 「 {website_single} 」, 部分视频可能没有结果! "
             )
 
         # 获取刮削数据
         json_data = None
         other = None
+
         try:
             json_data, other = await self._process_one_file(file_info, file_mode)
             if json_data and other:
                 if manager.config.main_mode == MainMode.Read:
-                    number = json_data.number  # 读取模式且存在nfo时，可能会导致movie_number改变，需要更新
+                    # 读取模式且存在nfo时，可能会导致movie_number改变，需要更新
+                    number = json_data.number  
+
                 Flags.json_data_dic.update({number: ScrapeResult(file_info, json_data, other)})
         except Exception as e:
             self._check_stop(show_name)
@@ -364,7 +388,7 @@ class Scraper:
                 )
                 signal.show_list_name("fail", show_data, number)
                 if e := LogBuffer.error().get():
-                    LogBuffer.log().write(f"\n 🔴 [Failed] Reason: {e}")
+                    LogBuffer.log().write(f"\n 🔴 失败原因: {e}")
                     if "WinError 5" in e:
                         LogBuffer.log().write(
                             "\n 🔴 该问题为权限问题：请尝试以管理员身份运行，同时关闭其他正在运行的Python脚本！"
@@ -408,7 +432,7 @@ class Scraper:
                 Flags.remain_list.remove(file_path)
                 Flags.can_save_remain = True
             except Exception as e1:
-                signal.show_log_text(f"remove:  {file_path}\n {str(e1)}\n {traceback.format_exc()}")
+                signal.show_log_text(f"移除:  {file_path}\n {str(e1)}\n {traceback.format_exc()}")
         except Exception as e:
             self._check_stop(show_name)
             signal.show_traceback_log(traceback.format_exc())
@@ -449,6 +473,8 @@ class Scraper:
             signal.show_log_text(str(e))
 
         LogBuffer.clear_thread()
+
+
 
     async def _process_one_file(
         self, file_info: FileInfo, file_mode: FileMode

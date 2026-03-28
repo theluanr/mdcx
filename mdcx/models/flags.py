@@ -17,7 +17,7 @@ class FileDoneDict(TypedDict):
     local_fanart: Path | None
     local_trailer: Path | None
 
-
+# 刮削进程状态
 @dataclass
 class _Flags:
     # 刮削模式:

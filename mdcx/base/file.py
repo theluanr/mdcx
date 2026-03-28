@@ -331,12 +331,12 @@ async def movie_lists(ignore_dirs: list[Path], media_type: list[str], movie_path
             i = found_count + 100
             signal.show_traceback_log(
                 f"✅ Found ({found_count})! "
-                f"Skip successfully scraped ({skip}) repeat softlink ({skip_repeat_softlink})! "
+                f"跳过成功抓取 ({skip})，重复软链接 ({skip_repeat_softlink})! "
                 f"({get_used_time(start_time)}s)... Still searching, please wait... \u3000"
             )
             signal.show_log_text(
                 f"    {get_current_time()} Found ({found_count})! "
-                f"Skip successfully scraped ({skip}) repeat softlink ({skip_repeat_softlink})! "
+                f"跳过成功抓取 ({skip})，重复软链接 ({skip_repeat_softlink})! "
                 f"({get_used_time(start_time)}s)... Still searching, please wait... \u3000"
             )
         return total, skip, skip_repeat_softlink
@@ -345,13 +345,13 @@ async def movie_lists(ignore_dirs: list[Path], media_type: list[str], movie_path
 
     total.sort()
     signal.show_traceback_log(
-        f"🎉 Done!!! Found ({len(total)})! "
-        f"Skip successfully scraped ({skip}) repeat softlink ({skip_repeat_softlink})! "
+        f"🎉 找到 ({len(total)})! "
+        f"跳过成功抓取 ({skip})，重复软链接 ({skip_repeat_softlink})! "
         f"({get_used_time(start_time)}s) \u3000"
     )
     signal.show_log_text(
-        f"    Done!!! Found ({len(total)})! "
-        f"Skip successfully scraped ({skip}) repeat softlink ({skip_repeat_softlink})! "
+        f"    找到 ({len(total)})! "
+        f"跳过成功抓取 ({skip})，重复软链接 ({skip_repeat_softlink})! "
         f"({get_used_time(start_time)}s) \u3000"
     )
     return total
@@ -361,11 +361,11 @@ async def get_movie_list(file_mode: FileMode, movie_path: Path, ignore_dirs: lis
     movie_list = []
     if file_mode == FileMode.Default:  # 刮削默认视频目录的文件
         if not await aiofiles.os.path.exists(movie_path):
-            signal.show_log_text("\n 🔴 Movie folder does not exist!")
+            signal.show_log_text("\n 🔴 视频目录不存在！")
         else:
-            signal.show_log_text(f" 🖥 Movie path: {movie_path}")
-            signal.show_log_text(" 🔎 Searching all videos, Please wait...")
-            signal.set_label_file_path.emit(f"正在遍历待刮削视频目录中的所有视频，请等待...\n {movie_path}")
+            signal.show_log_text(f" 🖥 视频路径: {movie_path}")
+            signal.show_log_text(" 🔎 查找所有视频中……")
+            signal.set_label_file_path.emit(f"正在遍历待刮削视频目录中的所有视频...\n {movie_path}")
             if (
                 NoEscape.FOLDER in manager.config.no_escape
                 or manager.config.main_mode == MainMode.Update
@@ -379,17 +379,17 @@ async def get_movie_list(file_mode: FileMode, movie_path: Path, ignore_dirs: lis
                 signal.show_traceback_log(traceback.format_exc())
                 signal.show_log_text(traceback.format_exc())
             count_all = len(movie_list)
-            signal.show_log_text(" 📺 Find " + str(count_all) + " movies")
+            signal.show_log_text(" 📺 找到 " + str(count_all) + " 个视频")
 
     elif file_mode == FileMode.Single:  # 刮削单文件（工具页面）
         file_path = Flags.single_file_path
         if not await aiofiles.os.path.exists(file_path):
-            signal.show_log_text(" 🔴 Movie file does not exist!")
+            signal.show_log_text(" 🔴 视频文件不存在！")
         else:
             movie_list.append(file_path)  # 把文件路径添加到movie_list
-            signal.show_log_text(f" 🖥 File path: {file_path}")
+            signal.show_log_text(f" 🖥 文件路径: {file_path}")
             if Flags.appoint_url:
-                signal.show_log_text(" 🌐 File url: " + Flags.appoint_url)
+                signal.show_log_text(" 🌐 url: " + Flags.appoint_url)
 
     return movie_list
 
@@ -412,7 +412,7 @@ async def newtdisk_creat_symlink(
     signal.show_log_text(f" 📁 源路径: {netdisk_path} -> 目标路径：{local_path} \n")
     try:
         if not netdisk_path or not local_path:
-            signal.show_log_text(f" 🔴 网盘目录和本地目录不能为空！请重新设置！({get_used_time(start_time)}s)")
+            signal.show_log_text(f" 🔴 网盘目录或本地目录不能为空！请重新设置！({get_used_time(start_time)}s)")
             signal.show_log_text("================================================================================")
             if from_tool:
                 signal.reset_buttons_status.emit()
@@ -462,13 +462,13 @@ async def newtdisk_creat_symlink(
                         if not copy_flag:
                             continue
                         copy_file_sync(net_file, local_file)
-                        signal.show_log_text(f" {total} 🍀 Copy done!\n {net_file} ")
+                        signal.show_log_text(f" {total} 🍀 复制完成！\n {net_file} ")
                         copy_num += 1
                         continue
                     # 不对原文件进行有效性检查以减小可能的网络 IO 开销
                     if net_file in done:
                         signal.show_log_text(
-                            f" {total} 🟠 Link skip! Source file already linked, this file is duplicate!\n {net_file} "
+                            f" {total} 🟠 跳过链接！源文件已链接，此文件为副本！\n {net_file} "
                         )
                         skip_num += 1
                         continue
@@ -476,13 +476,13 @@ async def newtdisk_creat_symlink(
 
                     try:
                         os.symlink(net_file, local_file)
-                        signal.show_log_text(f" {total} 🍀 Link done!\n {net_file} ")
+                        signal.show_log_text(f" {total} 🍀 链接完成！\n {net_file} ")
                         link_num += 1
                     except Exception as e:
                         print(traceback.format_exc())
                         error_info = ""
                         if "symbolic link privilege not held" in str(e):
-                            error_info = "   \n没有创建权限，请尝试管理员权限！或按照教程开启用户权限： https://www.jianshu.com/p/0e307bfe8770"
+                            error_info = "\n 没有权限创建软链接，建议直接问豆包。"
                         signal.show_log_text(f" {total} 🔴 链接失败!{error_info} \n {net_file} ")
                         signal.show_log_text(traceback.format_exc())
                         fail_num += 1
@@ -497,7 +497,7 @@ async def newtdisk_creat_symlink(
         print(traceback.format_exc())
         signal.show_log_text(traceback.format_exc())
 
-    signal.show_log_text("================================================================================")
+    signal.show_log_text("-" * 100)
     if from_tool:
         signal.reset_buttons_status.emit()
 
