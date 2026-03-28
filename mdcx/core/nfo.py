@@ -12,6 +12,7 @@ from ..config.enums import DownloadableFile, KeepableFile, Language, NfoInclude,
 from ..config.manager import manager
 from ..gen.field_enums import CrawlerResultFields
 from ..manual import ManualConfig
+from ..models.enums import MainMode, FileMode
 from ..models.log_buffer import LogBuffer
 from ..models.types import CrawlersResult, FileInfo, OtherInfo
 from ..number import get_number_letters
@@ -39,7 +40,7 @@ async def write_nfo(file_info: FileInfo, data: CrawlersResult, nfo_file: Path, o
         LogBuffer.log().write(f"\n 🍀 Nfo done! (old)({get_used_time(start_time)}s)")
         return True
 
-    if manager.config.main_mode == 3 or manager.config.main_mode == 4:
+    if manager.config.main_mode == MainMode.Update or manager.config.main_mode == MainMode.Read:
         nfo_title_template = manager.config.update_titletemplate
     else:
         nfo_title_template = manager.config.naming_media

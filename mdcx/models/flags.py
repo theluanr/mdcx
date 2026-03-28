@@ -20,6 +20,23 @@ class FileDoneDict(TypedDict):
 
 @dataclass
 class _Flags:
+    # 刮削模式:
+    #   0: Defautl, 默认刮削待刮削目录
+    #   1: Single, 单文件刮削
+    #   2: Agian, 重新刮削    
+    file_mode: FileMode = FileMode.Default
+    # 开始时间
+    start_time: float = 0.0
+    
+    # 视频总数
+    total_count: int = 0
+    # 成功数量
+    succ_count: int = 0
+    # 失败数量
+    fail_count: int = 0
+
+
+    '''下面不知道啥意思呢'''
     # 指定刮削 #todo 改为传参
     appoint_url: str = ""
     website_name: str = ""
@@ -36,18 +53,14 @@ class _Flags:
     remain_list: list[Path] = field(default_factory=list)
     new_again_dic: dict[Path, tuple[str, str, str]] = field(default_factory=dict)
     again_dic: dict[Path, tuple[str, str, str]] = field(default_factory=dict)  # 待重新刮削的字典
-    start_time: float = 0.0
-    file_mode: FileMode = FileMode.Default  # 默认刮削待刮削目录
     counting_order: int = 0  # 刮削顺序
-    total_count: int = 0  # 总数
     rest_now_begin_count: int = 0  # 本轮刮削开始统计的线程序号（实际-1）
     sleep_end: Event = field(default_factory=Event)  # 本轮休眠标识
     rest_next_begin_time: float = 0.0  # 下一轮开始时间
     scrape_starting: int = 0  # 已进入过刮削流程的数量
     scrape_started: int = 0  # 已进入过刮削流程并开始的数量
     scrape_done: int = 0  # 已完成刮削数量
-    succ_count: int = 0  # 成功数量
-    fail_count: int = 0  # 失败数量
+
     # 所有文件最终输出路径的字典（如已存在，则视为重复文件，直接跳过）
     file_new_path_dic: dict[Path, list[Path]] = field(default_factory=dict)
     # 当前文件的图片最终输出路径的字典（如已存在，则最终图片文件视为已处理过）
@@ -77,8 +90,8 @@ class _Flags:
     log_txt: Any = None  # 日志文件对象
     scrape_like_text: str = ""
     main_mode_text: str = ""
-
-    single_file_path: Path = field(default_factory=Path)  # 工具-单文件刮削的文件路径
+    # 工具-单文件刮削的文件路径
+    single_file_path: Path = field(default_factory=Path) 
 
     # for missing
     actor_numbers_dic: dict[str, list[str]] = field(default_factory=dict)  # 每个演员所有番号的字典
@@ -86,16 +99,18 @@ class _Flags:
     local_number_cnword_set: set[str] = field(default_factory=set)  # 本地所有有字幕的番号的集合
 
     def reset(self) -> None:
-        self.failed_list = []
-        self.counting_order = 0
         self.total_count = 0
+        self.succ_count = 0
+        self.fail_count = 0
+        self.failed_list = []
+
+        self.counting_order = 0
         self.rest_now_begin_count = 0
         self.sleep_end.set()  # 初始状态为未休眠
         self.scrape_starting = 0
         self.scrape_started = 0
         self.scrape_done = 0
-        self.succ_count = 0
-        self.fail_count = 0
+
         self.file_new_path_dic = {}
         self.pic_catch_set = set()
         self.file_done_dic = {}
@@ -106,6 +121,7 @@ class _Flags:
         self.json_get_set = set()
         self.json_data_dic = {}
         self.img_path = ""
+
 
 
 Flags = _Flags()

@@ -14,7 +14,7 @@ from ..config.extend import get_movie_path_setting, need_clean
 from ..config.manager import manager
 from ..config.models import CleanAction
 from ..config.resources import resources
-from ..models.enums import FileMode
+from ..models.enums import MainMode, FileMode
 from ..models.flags import Flags
 from ..models.log_buffer import LogBuffer
 from ..signals import signal
@@ -32,7 +32,7 @@ async def move_other_file(number: str, folder_old_path: Path, folder_new_path: P
         return
 
     # 更新模式 或 读取模式
-    if manager.config.main_mode == 3 or manager.config.main_mode == 4:
+    if manager.config.main_mode == MainMode.Update or manager.config.main_mode == MainMode.Read:
         if manager.config.update_mode == "c" and not manager.config.success_file_rename:
             return
 
@@ -208,7 +208,7 @@ async def check_and_clean_files() -> None:
     signal.change_buttons_status.emit()
     start_time = time.time()
     movie_path = get_movie_path_setting().movie_path
-    signal.show_log_text("🍯 🍯 🍯 NOTE: START CHECKING AND CLEAN FILE NOW!!!")
+    signal.show_log_text("🍯 NOTE: START CHECKING AND CLEAN FILE NOW!!!")
     signal.show_log_text(f"\n ⏰ Start time: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
     signal.show_log_text(f" 🖥 Movie path: {movie_path} \n ⏳ Checking all videos and cleaning, Please wait...")
     total = 0
@@ -234,7 +234,7 @@ async def check_and_clean_files() -> None:
     await _clean_empty_fodlers(movie_path, FileMode.Default)
     signal.set_label_file_path.emit("🗑 清理完成！")
     signal.show_log_text(
-        f" 🎉🎉🎉 All finished!!!({get_used_time(start_time)}s) Total {total} , Success {succ} , Failed {fail} "
+        f" 🎉 全部完成！ ({get_used_time(start_time)}s) 全部 {total} , Success {succ} , Failed {fail} "
     )
     signal.show_log_text("================================================================================")
     signal.reset_buttons_status.emit()
@@ -368,8 +368,8 @@ async def get_movie_list(file_mode: FileMode, movie_path: Path, ignore_dirs: lis
             signal.set_label_file_path.emit(f"正在遍历待刮削视频目录中的所有视频，请等待...\n {movie_path}")
             if (
                 NoEscape.FOLDER in manager.config.no_escape
-                or manager.config.main_mode == 3
-                or manager.config.main_mode == 4
+                or manager.config.main_mode == MainMode.Update
+                or manager.config.main_mode == MainMode.Read
             ):
                 ignore_dirs = []
             try:
@@ -408,8 +408,8 @@ async def newtdisk_creat_symlink(
         netdisk_path = Path(manager.config.netdisk_path)
     if not local_path:
         local_path = Path(manager.config.localdisk_path)
-    signal.show_log_text("🍯 🍯 🍯 开始创建符号链接")
-    signal.show_log_text(f" 📁 源路径: {netdisk_path} \n 📁 目标路径：{local_path} \n")
+    signal.show_log_text(" 🍯 开始创建符号链接")
+    signal.show_log_text(f" 📁 源路径: {netdisk_path} -> 目标路径：{local_path} \n")
     try:
         if not netdisk_path or not local_path:
             signal.show_log_text(f" 🔴 网盘目录和本地目录不能为空！请重新设置！({get_used_time(start_time)}s)")
@@ -483,15 +483,15 @@ async def newtdisk_creat_symlink(
                         error_info = ""
                         if "symbolic link privilege not held" in str(e):
                             error_info = "   \n没有创建权限，请尝试管理员权限！或按照教程开启用户权限： https://www.jianshu.com/p/0e307bfe8770"
-                        signal.show_log_text(f" {total} 🔴 Link failed!{error_info} \n {net_file} ")
+                        signal.show_log_text(f" {total} 🔴 链接失败!{error_info} \n {net_file} ")
                         signal.show_log_text(traceback.format_exc())
                         fail_num += 1
             return total, copy_num, link_num, skip_num, fail_num
 
         total, copy_num, link_num, skip_num, fail_num = await asyncio.to_thread(task)
         signal.show_log_text(
-            f"\n 🎉🎉🎉 All finished!!!({get_used_time(start_time)}s) Total {total} , "
-            f"Linked {link_num} , Copied {copy_num} , Skiped {skip_num} , Failed {fail_num} "
+            f"\n 🎉 全部完成！ ({get_used_time(start_time)}s) 全部 {total} , "
+            f"链接 {link_num} , 复制 {copy_num} , 跳过 {skip_num} , 失败 {fail_num} "
         )
     except Exception:
         print(traceback.format_exc())
@@ -505,7 +505,7 @@ async def newtdisk_creat_symlink(
 async def move_file_to_failed_folder(failed_folder: Path, file_path: Path, folder_old_path: Path) -> Path:
     # 更新模式、读取模式，不移动失败文件；不移动文件-关时，不移动； 软硬链接开时，不移动
     main_mode = manager.config.main_mode
-    if main_mode == 3 or main_mode == 4 or not manager.config.failed_file_move or manager.config.soft_link != 0:
+    if main_mode == MainMode.Update or main_mode == MainMode.Read or not manager.config.failed_file_move or manager.config.soft_link != 0:
         LogBuffer.log().write(f"\n 🙊 [Movie] {file_path}")
         return file_path
 
@@ -593,7 +593,7 @@ async def check_file(file_path: Path, file_escape_size: float) -> bool:
 
 async def move_torrent(old_dir: Path, new_dir: Path, file_name: str, number: str, naming_rule: str):
     # 更新模式 或 读取模式
-    if manager.config.main_mode == 3 or manager.config.main_mode == 4:
+    if manager.config.main_mode == MainMode.Update or manager.config.main_mode == MainMode.Read:
         if manager.config.update_mode == "c" and not manager.config.success_file_rename:
             return
 
@@ -625,7 +625,7 @@ async def move_torrent(old_dir: Path, new_dir: Path, file_name: str, number: str
 
 async def move_bif(old_dir: Path, new_dir: Path, file_name: str, naming_rule: str) -> None:
     # 更新模式 或 读取模式
-    if manager.config.main_mode == 3 or manager.config.main_mode == 4:
+    if manager.config.main_mode == MainMode.Update or manager.config.main_mode == MainMode.Read:
         if manager.config.update_mode == "c" and not manager.config.success_file_rename:
             return
 
@@ -643,9 +643,9 @@ async def move_bif(old_dir: Path, new_dir: Path, file_name: str, naming_rule: st
 
 
 async def move_trailer_video(old_dir: Path, new_dir: Path, file_name: str, naming_rule: str) -> None:
-    if manager.config.main_mode < 2 and not manager.config.success_file_move and not manager.config.success_file_rename:
+    if manager.config.main_mode < MainMode.Sort and not manager.config.success_file_move and not manager.config.success_file_rename:
         return
-    if manager.config.main_mode > 2:
+    if manager.config.main_mode > MainMode.Sort:
         update_mode = manager.config.update_mode
         if update_mode == "c" and not manager.config.success_file_rename:
             return

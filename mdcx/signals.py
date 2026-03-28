@@ -37,6 +37,10 @@ class Signals(QObject):
         self.detail_log_list = []
         self.stop = False
 
+    # 显示出一行日志文本
+    def show_log_text(self, text):
+        self.log_text.emit(text)
+
     def add_log(self, *text):
         """打印日志到日志页下方详情框"""
         if self.stop:
@@ -57,8 +61,7 @@ class Signals(QObject):
         print(text)
         self.add_log(text)
 
-    def show_log_text(self, text):
-        self.log_text.emit(text)
+
 
     def show_scrape_info(self, before_info=""):
         self.scrape_info.emit(before_info)

@@ -11,7 +11,7 @@ from ..base.number import remove_escape_string
 from ..config.enums import CDChar, MarkType, Switch
 from ..config.manager import manager
 from ..consts import IS_MAC, IS_WINDOWS
-from ..models.enums import FileMode
+from ..models.enums import MainMode, FileMode
 from ..models.flags import Flags
 from ..models.log_buffer import LogBuffer
 from ..models.types import BaseCrawlerResult, CrawlersResult, FileInfo, OtherInfo
@@ -39,11 +39,11 @@ async def creat_folder(
     dont_creat_folder = False  # 不需要创建文件夹
 
     # 正常模式、视频模式时，软链接关，成功后不移动文件开时，这时不创建文件夹
-    if manager.config.main_mode < 3 and manager.config.soft_link == 0 and not manager.config.success_file_move:
+    if manager.config.main_mode < MainMode.Update and manager.config.soft_link == 0 and not manager.config.success_file_move:
         dont_creat_folder = True
 
     # 更新模式、读取模式，选择更新c文件时，不创建文件夹
-    if manager.config.main_mode > 2 and manager.config.update_mode == "c":
+    if manager.config.main_mode > MainMode.Sort and manager.config.update_mode == "c":
         dont_creat_folder = True
 
     # 如果不需要创建文件夹，当不重命名时，直接返回
@@ -180,7 +180,7 @@ def _get_folder_path(success_folder: Path, file_info: FileInfo, res: CrawlersRes
     folder_path = file_info.file_path.parent
 
     # 更新模式 或 读取模式
-    if manager.config.main_mode == 3 or manager.config.main_mode == 4:
+    if manager.config.main_mode == MainMode.Update or manager.config.main_mode == MainMode.Read:
         if manager.config.update_mode == "c":
             folder_name = folder_path.name
             return folder_path, folder_name
@@ -273,7 +273,7 @@ def _generate_file_name(cd_part, file_info: FileInfo, res: CrawlersResult) -> st
         return file_name
 
     # 更新模式 或 读取模式
-    if manager.config.main_mode == 3 or manager.config.main_mode == 4:
+    if manager.config.main_mode == MainMode.Update or manager.config.main_mode == MainMode.Read:
         file_name_template = manager.config.update_c_filetemplate
     # 正常模式 或 整理模式
     else:
@@ -827,7 +827,7 @@ async def deal_old_files(
 
     # 视频模式进行清理
     main_mode = manager.config.main_mode
-    if main_mode == 2 and Switch.SORT_DEL in manager.config.switch_on:
+    if main_mode == MainMode.Sort and Switch.SORT_DEL in manager.config.switch_on:
         for each in file_path_list:
             if await aiofiles.os.path.exists(each):
                 await delete_file_async(each)

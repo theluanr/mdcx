@@ -26,7 +26,7 @@ from ..config.extend import get_movie_path_setting
 from ..config.manager import manager
 from ..config.resources import resources
 from ..crawler import CrawlerProvider
-from ..models.enums import FileMode
+from ..models.enums import MainMode, FileMode
 from ..models.flags import FileDoneDict, Flags
 from ..models.log_buffer import LogBuffer
 from ..models.types import CrawlersResult, FileInfo, OtherInfo, ScrapeResult, ShowData
@@ -82,10 +82,7 @@ class Scraper:
 
     # 运行刮削
     async def _run(self, file_mode: FileMode, movie_list: list[Path] | None) -> None:
-        # 初始化影片列表
-        if movie_list is None:
-            movie_list = []
-
+        '''初始化阶段'''
         # 重置刮削状态
         Flags.reset()
         # 刮削模式（工具单文件或主界面/日志点开始正常刮削）
@@ -96,8 +93,10 @@ class Scraper:
         Flags.start_time = time.time()
 
         # 初始化线程设置
-        thread_number = manager.config.thread_number  # 线程数量
-        thread_time = manager.config.thread_time  # 线程延时
+        # 线程数量
+        thread_number = manager.config.thread_number
+        # 线程延时
+        thread_time = manager.config.thread_time
         # 获取设置的媒体目录、失败目录、成功目录
         path_settings = get_movie_path_setting()
         movie_path = path_settings.movie_path
@@ -111,21 +110,29 @@ class Scraper:
         signal.label_result.emit(f" 刮削中：{0} 成功：{Flags.succ_count} 失败：{Flags.fail_count}")
         signal.logs_failed_settext.emit("\n\n")
 
+        # 初始化影片列表
+        if movie_list is None:
+            movie_list = []
+
         # 文件模式:
-        #   0: Defautl,默认
-        #   1: Single,单文件刮削
-        #   2: Agian,重新刮削
-        if file_mode == FileMode.Single:
+        #   Defautl：默认
+        #   Single：单文件刮削
+        #   Agian：重新刮削
+        if file_mode == FileMode.Default:
+            pass
+        elif file_mode == FileMode.Single:
             signal.show_log_text("🍯  NOTE: 当前是单文件刮削模式")
         elif file_mode == FileMode.Again:
             signal.show_log_text(f"🍯  NOTE: 开始重新刮削，刮削文件数量（{len(movie_list)})")
             n = 0
+
             for each_f, each_i in Flags.new_again_dic.items():
                 n += 1
+                 
                 if each_i[0]:
-                    signal.show_log_text(f"{n} 🖥 File path: {each_f}\n 🚘 File number: {each_i[0]}")
+                    signal.show_log_text(f"{n} 🖥 文件路径: {each_f}\n 🚘 文件数量: {each_i[0]}")
                 else:
-                    signal.show_log_text(f"{n} 🖥 File path: {each_f}\n 🌐 File url: {each_i[1]}")
+                    signal.show_log_text(f"{n} 🖥 文件路径: {each_f}\n 🌐 url: {each_i[1]}")
 
         # 获取待刮削文件列表的相关信息
         if not movie_list:
@@ -150,20 +157,19 @@ class Scraper:
 
         Flags.remain_list = movie_list
         Flags.can_save_remain = True
-        task_count = len(movie_list)
-        Flags.total_count = task_count
+        Flags.total_count = len(movie_list)
 
         task_list = []
         for i, each in enumerate(movie_list, 1):
-            task_list.append((each, i, task_count))
+            task_list.append((each, i, Flags.total_count))
 
-        if task_count:
+        if Flags.total_count:
             Flags.count_claw += 1
-            if manager.config.main_mode == 4:
+            if manager.config.main_mode == MainMode.Read:
                 signal.show_log_text(f" 🕷 当前为读取模式，并发数（{thread_number}），线程延时（0）秒...")
             else:
-                if task_count < thread_number:
-                    thread_number = task_count
+                if Flags.total_count < thread_number:
+                    thread_number = Flags.total_count
                 signal.show_log_text(f" 🕷 开启异步并发，并发数（{thread_number}），线程延时（{thread_time}）秒...")
             if Switch.REST_SCRAPE in manager.config.switch_on and manager.config.main_mode != 4:
                 signal.show_log_text(
@@ -190,12 +196,12 @@ class Scraper:
         await _clean_empty_fodlers(movie_path, file_mode)
         end_time = time.time()
         used_time = str(round((end_time - Flags.start_time), 2))
-        average_time = str(round((end_time - Flags.start_time) / task_count, 2)) if task_count else used_time
+        average_time = str(round((end_time - Flags.start_time) / Flags.total_count, 2)) if Flags.total_count else used_time
         signal.exec_set_processbar.emit(0)
-        signal.set_label_file_path.emit(f"🎉 恭喜！全部刮削完成！共 {task_count} 个文件！用时 {used_time} 秒")
-        signal.show_traceback_log(f"🎉 全部完成！ 共计 {task_count} , 成功 {Flags.succ_count} , 失败 {Flags.fail_count} ")
-        signal.show_log_text(f" 🎉 全部完成！ 共计 {task_count} , 成功 {Flags.succ_count} , 失败 {Flags.fail_count} ")
-        signal.show_log_text("-" * 50)
+        signal.show_log_text("-" * 100)
+        signal.set_label_file_path.emit(f"🎉 恭喜！全部刮削完成！共 {Flags.total_count} 个文件！用时 {used_time} 秒")
+        signal.show_traceback_log(f"🎉 全部完成！ 共计 {Flags.total_count} , 成功 {Flags.succ_count} , 失败 {Flags.fail_count} ")
+        signal.show_log_text(f" 🎉 全部完成！ 共计 {Flags.total_count} , 成功 {Flags.succ_count} , 失败 {Flags.fail_count} ")
         
         # 打印失败结果
         if Flags.failed_list:
@@ -205,15 +211,14 @@ class Scraper:
                 fail_path, fail_reson = Flags.failed_list[i]
                 signal.show_log_text(f" 🔴 {i + 1} {fail_path}\n    {fail_reson}")
             
-            signal.show_log_text("=" * 50)
 
         signal.show_log_text(" ⏰ 开始时间: " + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(Flags.start_time)))
         signal.show_log_text(" 🏁 结束时间: " + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(end_time)))
         signal.show_log_text(" ⏱ 耗时共计: {used_time}S")
-        signal.show_log_text(" 📺 影片数量: {task_count}")
+        signal.show_log_text(" 📺 影片数量: {Flags.total_count}")
         signal.show_log_text(" 🍕 平均耗时: {average_time}S")
-        signal.show_log_text("=" * 50)
-        signal.show_scrape_info(f"🎉 刮削完成 {task_count}/{task_count}")
+        signal.show_log_text("-" * 100)
+        signal.show_scrape_info(f"🎉 刮削完成 {Flags.total_count}/{Flags.total_count}")
 
         # auto run after scrape
         if EmbyAction.ACTOR_PHOTO_AUTO in manager.config.emby_on:
@@ -260,7 +265,7 @@ class Scraper:
         Flags.scrape_starting += 1
         count = Flags.scrape_starting
         thread_time = manager.config.thread_time
-        if count == 1 or thread_time == 0 or manager.config.main_mode == 4:
+        if count == 1 or thread_time == 0 or manager.config.main_mode == MainMode.Read:
             Flags.next_start_time = time.time()
             signal.show_log_text(f" 🕷 {get_current_time()} 开始刮削：{Flags.scrape_starting}/{count_all} {show_name}")
             thread_time = 0
@@ -318,7 +323,7 @@ class Scraper:
         try:
             json_data, other = await self._process_one_file(file_info, file_mode)
             if json_data and other:
-                if manager.config.main_mode == 4:
+                if manager.config.main_mode == MainMode.Read:
                     number = json_data.number  # 读取模式且存在nfo时，可能会导致movie_number改变，需要更新
                 Flags.json_data_dic.update({number: ScrapeResult(file_info, json_data, other)})
         except Exception as e:
@@ -478,7 +483,7 @@ class Scraper:
         res = CrawlersResult.empty()  # todo 保证所有路径上均有 res 值
         # 读取模式
         file_can_download = True
-        if manager.config.main_mode == 4:
+        if manager.config.main_mode == MainMode.Read:
             nfo_data, info = await get_nfo_data(file_path, movie_number)
             if nfo_data:  # 有nfo
                 is_nfo_existed = True
@@ -501,11 +506,11 @@ class Scraper:
         # 判断是否write_nfo
         update_nfo = True
         # 不写nfo的情况：
-        if manager.config.main_mode == 2 and Switch.SORT_DEL in manager.config.switch_on:
+        if manager.config.main_mode == MainMode.Sort and Switch.SORT_DEL in manager.config.switch_on:
             # 2模式勾选“删除本地已下载的nfo文件”（暂无效，会直接return）
             update_nfo = False
         elif manager.config.main_mode in [1, 2, 3] or (
-            manager.config.main_mode == 4 and not is_nfo_existed and ReadMode.NO_NFO_SCRAPE in read_mode
+            manager.config.main_mode == MainMode.Read and not is_nfo_existed and ReadMode.NO_NFO_SCRAPE in read_mode
         ):
             # 1、2、3模式，或4模式启用了“本地之前刮削失败和没有nfo的文件重新刮削”（变量命名有点问题，存在"no_nfo_scrape"意思其实是要刮削）
             # 且
@@ -515,7 +520,7 @@ class Scraper:
             if DownloadableFile.NFO in manager.config.keep_files and is_nfo_existed:
                 # [下载]处勾选保留nfo且nfo存在时
                 update_nfo = False
-        elif manager.config.main_mode == 4:
+        elif manager.config.main_mode == MainMode.Read:
             # 4（读取）模式默认不写nfo
             update_nfo = False
             # 除非
@@ -673,7 +678,7 @@ class Scraper:
 
         # 视频模式（原来叫整理模式）
         # 视频模式（仅根据刮削数据把电影命名为番号并分类到对应目录名称的文件夹下）
-        if manager.config.main_mode == 2:
+        if manager.config.main_mode == MainMode.Sort:
             # 移动文件
             if await move_movie(other, file_info, file_path, file_new_path):
                 if Switch.SORT_DEL in manager.config.switch_on:
