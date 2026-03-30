@@ -224,9 +224,9 @@ def add_definition_tag(res: BaseCrawlerResult, definition, codec):
     new_tag_list = []
     [new_tag_list.append(i) for i in tag_list if i]
     if definition and TagInclude.DEFINITION in manager.config.nfo_tag_include:
-        new_tag_list.insert(0, definition)
+        new_tag_list.append(definition)
         if manager.config.hd_get == "video" and codec and codec not in new_tag_list:
-            new_tag_list.insert(0, codec)  # 插入编码格式
+            new_tag_list.append(codec)  # 插入编码格式
     res.tag = ",".join(new_tag_list)
 
 

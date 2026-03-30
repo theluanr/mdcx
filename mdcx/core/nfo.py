@@ -381,7 +381,6 @@ async def get_nfo_data(file_path: Path, movie_number: str) -> tuple[CrawlersResu
                 json_data.outline_from = temp_from[0].replace("<br>  <br>由 ", "").replace(" 提供翻译", "")
             outline = outline.replace(originalplot, "").replace("<br>  <br>", "")
     tag = ",".join(xml_nfo.xpath("//tag/text()"))
-    print(1)
     genre = ",".join(xml_nfo.xpath("//genre/text()"))
     release = "".join(xml_nfo.xpath("//release/text()"))
     if not release:
@@ -499,7 +498,7 @@ async def get_nfo_data(file_path: Path, movie_number: str) -> tuple[CrawlersResu
     json_data.tag = tag
     if ReadMode.READ_UPDATE_NFO in manager.config.read_mode:
         json_data.tag = tag_only
-    print(2)
+
     json_data.genre = genre
     json_data.release = release
     json_data.year = year

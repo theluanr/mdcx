@@ -232,9 +232,9 @@ async def check_and_clean_files() -> None:
     signal.show_log_text(f" 🍀 Clean done!({get_used_time(start_time)}s)")
     signal.show_log_text("================================================================================")
     await _clean_empty_fodlers(movie_path, FileMode.Default)
-    signal.set_label_file_path.emit("🗑 清理完成！")
+    signal.set_label_file_path.emit("🗑 清理完成。")
     signal.show_log_text(
-        f" 🎉 全部完成！ ({get_used_time(start_time)}s) 全部 {total} , Success {succ} , Failed {fail} "
+        f" 🎉 全部完成。 ({get_used_time(start_time)}s) 全部 {total} , Success {succ} , Failed {fail} "
     )
     signal.show_log_text("================================================================================")
     signal.reset_buttons_status.emit()
@@ -361,7 +361,7 @@ async def get_movie_list(file_mode: FileMode, movie_path: Path, ignore_dirs: lis
     movie_list = []
     if file_mode == FileMode.Default:  # 刮削默认视频目录的文件
         if not await aiofiles.os.path.exists(movie_path):
-            signal.show_log_text("\n 🔴 视频目录不存在！")
+            signal.show_log_text(f" 🔴 视频目录不存在: {movie_path}")
         else:
             signal.show_log_text(f" 🖥 视频路径: {movie_path}")
             signal.show_log_text(" 🔎 查找所有视频中……")
@@ -384,7 +384,7 @@ async def get_movie_list(file_mode: FileMode, movie_path: Path, ignore_dirs: lis
     elif file_mode == FileMode.Single:  # 刮削单文件（工具页面）
         file_path = Flags.single_file_path
         if not await aiofiles.os.path.exists(file_path):
-            signal.show_log_text(" 🔴 视频文件不存在！")
+            signal.show_log_text(f" 🔴 视频文件不存在： {file_path}")
         else:
             movie_list.append(file_path)  # 把文件路径添加到movie_list
             signal.show_log_text(f" 🖥 文件路径: {file_path}")
@@ -413,7 +413,7 @@ async def newtdisk_creat_symlink(
     try:
         if not netdisk_path or not local_path:
             signal.show_log_text(f" 🔴 网盘目录或本地目录不能为空！请重新设置！({get_used_time(start_time)}s)")
-            signal.show_log_text("================================================================================")
+            signal.show_log_text("\n" + "-" * 50)
             if from_tool:
                 signal.reset_buttons_status.emit()
             return
@@ -451,24 +451,24 @@ async def newtdisk_creat_symlink(
                     net_file = root / f
                     local_file = local_dir / f
                     if local_file.is_file():
-                        signal.show_log_text(f" {total} 🟠 跳过: 已存在文件或有效的符号链接\n {net_file} ")
+                        signal.show_log_text(f" {total} 🟠 跳过: 已存在文件或有效的符号链接 - {net_file} ")
                         skip_num += 1
                         continue
                     if local_file.is_symlink():
-                        signal.show_log_text(f" {total} 🔴 删除: 无效的符号链接\n {net_file} ")
+                        signal.show_log_text(f" {total} 🔴 删除: 无效的符号链接 - {net_file} ")
                         local_file.unlink()
 
                     if ext in copy_exts:  # 直接复制的文件
                         if not copy_flag:
                             continue
                         copy_file_sync(net_file, local_file)
-                        signal.show_log_text(f" {total} 🍀 复制完成！\n {net_file} ")
+                        signal.show_log_text(f" {total} 🍀 复制完成 - {net_file} ")
                         copy_num += 1
                         continue
                     # 不对原文件进行有效性检查以减小可能的网络 IO 开销
                     if net_file in done:
                         signal.show_log_text(
-                            f" {total} 🟠 跳过链接！源文件已链接，此文件为副本！\n {net_file} "
+                            f" {total} 🟠 跳过链接。源文件已链接，此文件为副本 - {net_file} "
                         )
                         skip_num += 1
                         continue
@@ -476,21 +476,21 @@ async def newtdisk_creat_symlink(
 
                     try:
                         os.symlink(net_file, local_file)
-                        signal.show_log_text(f" {total} 🍀 链接完成！\n {net_file} ")
+                        signal.show_log_text(f" {total} 🍀 链接完成 - {net_file} ")
                         link_num += 1
                     except Exception as e:
                         print(traceback.format_exc())
                         error_info = ""
                         if "symbolic link privilege not held" in str(e):
                             error_info = "\n 没有权限创建软链接，建议直接问豆包。"
-                        signal.show_log_text(f" {total} 🔴 链接失败!{error_info} \n {net_file} ")
+                        signal.show_log_text(f" {total} 🔴 链接失败：{error_info} - {net_file} ")
                         signal.show_log_text(traceback.format_exc())
                         fail_num += 1
             return total, copy_num, link_num, skip_num, fail_num
 
         total, copy_num, link_num, skip_num, fail_num = await asyncio.to_thread(task)
         signal.show_log_text(
-            f"\n 🎉 全部完成！ ({get_used_time(start_time)}s) 全部 {total} , "
+            f"\n 🎉 全部完成。 ({get_used_time(start_time)}s) 全部 {total} , "
             f"链接 {link_num} , 复制 {copy_num} , 跳过 {skip_num} , 失败 {fail_num} "
         )
     except Exception:
@@ -585,7 +585,7 @@ async def check_file(file_path: Path, file_escape_size: float) -> bool:
         file_size = await aiofiles.os.path.getsize(file_path) / float(1024 * 1024)
         if file_size < file_escape_size:
             LogBuffer.error().write(
-                f"文件小于 {file_escape_size} MB 被过滤!（实际大小 {round(file_size, 2)} MB）已跳过刮削！"
+                f"文件小于 {file_escape_size} MB 被过滤!（实际大小 {round(file_size, 2)} MB）已跳过刮削。"
             )
             return False
     return True

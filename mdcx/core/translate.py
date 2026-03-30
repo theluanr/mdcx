@@ -75,16 +75,11 @@ def translate_info(json_data: CrawlersResult, has_sub: bool):
                     tag_new.append(each_info)
         tag = ",".join(tag_new)
 
+    print(tag)
+    LogBuffer.log().write(tag)
+
     # tag去重/去空/排序
     tag = clean_list(tag)
-
-    # 添加演员
-    if TagInclude.ACTOR in tag_include:
-        whitelist = manager.config.nfo_tag_actor_contains
-        for actor in json_data.actors:
-            if not whitelist or actor in whitelist:
-                nfo_tag_actor = manager.config.nfo_tag_actor.replace("actor", actor)
-                tag = nfo_tag_actor + "," + tag
 
     # 添加番号前缀
     letters = json_data.letters
@@ -98,13 +93,6 @@ def translate_info(json_data: CrawlersResult, has_sub: bool):
                 json_data.number = temp_n[0]
         tag = letters + "," + tag
         tag = tag.strip(",")
-
-    # 添加字幕、马赛克信息到tag中
-    mosaic = json_data.mosaic
-    if has_sub and TagInclude.CNWORD in tag_include:
-        tag += ",中文字幕"
-    if mosaic and TagInclude.MOSAIC in tag_include:
-        tag += "," + mosaic
 
     # 添加系列、制作、发行信息到tag中
     series = json_data.series
@@ -155,6 +143,21 @@ def translate_info(json_data: CrawlersResult, has_sub: bool):
         tag = zhconv.convert(tag, "zh-cn")
     elif tag_language == Language.ZH_TW:
         tag = zhconv.convert(tag, "zh-hant")
+        
+    # 添加演员
+    if TagInclude.ACTOR in tag_include:
+        whitelist = manager.config.nfo_tag_actor_contains
+        for actor in json_data.actors:
+            if not whitelist or actor in whitelist:
+                nfo_tag_actor = manager.config.nfo_tag_actor.replace("actor", actor)
+                tag = nfo_tag_actor + "," + tag
+
+    # 添加字幕、马赛克信息到tag中
+    mosaic = json_data.mosaic
+    if has_sub and TagInclude.CNWORD in tag_include:
+        tag += ",中文字幕"
+    if mosaic and TagInclude.MOSAIC in tag_include:
+        tag += "," + mosaic
 
     # tag去重/去空/排序
     tag = clean_list(tag)
