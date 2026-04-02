@@ -17088,10 +17088,10 @@
                                   <string notr="true"> font: &quot;Courier&quot;;
                                     border: 1px solid rgba(0,0,0, 50);
                                     border-radius: 15px;
-</string>
+                                </string>
                                 </property>
                                 <property name="text">
-                                  <string>系列: series</string>
+                                  <string>🎞️series</string>
                                 </property>
                               </widget>
                             </item>
@@ -17145,10 +17145,10 @@
                                   <string notr="true"> font: &quot;Courier&quot;;
                                     border: 1px solid rgba(0,0,0, 50);
                                     border-radius: 15px;
-</string>
+                                  </string>
                                 </property>
                                 <property name="text">
-                                  <string>片商: studio</string>
+                                  <string>📹studio</string>
                                 </property>
                               </widget>
                             </item>
@@ -17578,10 +17578,10 @@
                                   <string notr="true"> font: &quot;Courier&quot;;
                                     border: 1px solid rgba(0,0,0, 50);
                                     border-radius: 15px;
-</string>
+                                  </string>
                                 </property>
                                 <property name="text">
-                                  <string>发行: publisher</string>
+                                  <string>📢publisher</string>
                                 </property>
                               </widget>
                             </item>

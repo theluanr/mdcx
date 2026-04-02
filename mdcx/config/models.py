@@ -495,9 +495,9 @@ class Config(BaseModel):
         ],
         title="包含标签",
     )
-    nfo_tag_series: str = Field(default="系列: series", title="NFO系列标签")
-    nfo_tag_studio: str = Field(default="片商: studio", title="NFO工作室标签")
-    nfo_tag_publisher: str = Field(default="发行: publisher", title="NFO发行商标签")
+    nfo_tag_series: str = Field(default="🎞️series", title="NFO系列标签")
+    nfo_tag_studio: str = Field(default="📹studio", title="NFO工作室标签")
+    nfo_tag_publisher: str = Field(default="📢publisher", title="NFO发行商标签")
     nfo_tag_actor: str = Field(default="actor", title="NFO演员标签")
     nfo_tag_actor_contains: list[str] = Field(default_factory=list, title="NFO 演员名白名单")
     folder_name: str = Field(default="actor/number actor", title="目录名称")
