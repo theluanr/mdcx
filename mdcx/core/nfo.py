@@ -258,12 +258,12 @@ async def write_nfo(file_info: FileInfo, data: CrawlersResult, nfo_file: Path, o
         # 输出合集(使用系列)
         if NfoInclude.SERIES_SET in nfo_include_new and series:
             print("  <set>", file=code)
-            print("    <name>" + series + "</name>", file=code)
+            print("    <name>🎞️" + series + "</name>", file=code)
             print("  </set>", file=code)
 
         # 输出系列
         if series and NfoInclude.SERIES in nfo_include_new:
-            print("  <series>" + series + "</series>", file=code)
+            print("  <series>🎞️" + series + "</series>", file=code)
 
         # 输出片商/制作商
         if studio:
