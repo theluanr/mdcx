@@ -248,18 +248,18 @@ async def write_nfo(file_info: FileInfo, data: CrawlersResult, nfo_file: Path, o
         if str(runtime) and NfoInclude.RUNTIME in nfo_include_new:
             print("  <runtime>" + str(runtime).replace(" ", "") + "</runtime>", file=code)
 
+        # 输出合集(使用系列)
+        if NfoInclude.SERIES_SET in nfo_include_new and series:
+            print("  <set>", file=code)
+            print("    <name>🎞️" + series + "</name>", file=code)
+            print("  </set>", file=code)
+
         # 输出合集(使用演员)
         if NfoInclude.ACTOR_SET in nfo_include_new:
             for name in data.actors:
                 print("  <set>", file=code)
                 print("    <name>" + name + "</name>", file=code)
                 print("  </set>", file=code)
-
-        # 输出合集(使用系列)
-        if NfoInclude.SERIES_SET in nfo_include_new and series:
-            print("  <set>", file=code)
-            print("    <name>🎞️" + series + "</name>", file=code)
-            print("  </set>", file=code)
 
         # 输出系列
         if series and NfoInclude.SERIES in nfo_include_new:

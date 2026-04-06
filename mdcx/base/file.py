@@ -450,7 +450,7 @@ async def newtdisk_creat_symlink(
                     total += 1
                     net_file = root / f
                     local_file = local_dir / f
-                    if local_file.is_file():
+                    if local_file.is_file() and ext != '.nfo':
                         signal.show_log_text(f" {total} 🟠 跳过: 已存在文件或有效的符号链接 - {net_file} ")
                         skip_num += 1
                         continue
